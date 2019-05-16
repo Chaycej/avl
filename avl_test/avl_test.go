@@ -2,6 +2,7 @@ package avl_test
 
 import (
 	"github.com/avl"
+	"strconv"
 	"testing"
 )
 
@@ -123,5 +124,78 @@ func TestRightRotate(t *testing.T) {
 		t.Errorf("Left rotate error: Invalid right child node\n")
 		t.Errorf("Expected value: \"a\"\n")
 		t.Errorf("Got value: \"%s\"\n", root.GetValue())
+	}
+}
+
+func TestDelete(t *testing.T) {
+	tree := avl.TreeInit()
+	tree.Insert("test")
+	tree.Insert("abc")
+	tree.Insert("zzz")
+	f := tree.Delete("test")
+	if f != true && tree.Search("test") != false {
+		t.Errorf("Delete error: Did not delete value: %s\n", "test")
+	}
+
+	tree.Insert("ccc")
+	tree.Insert("ddd")
+	tree.Insert("bbb")
+	tree.Insert("mmm")
+	f = tree.Delete("ddd")
+	if f != true && tree.Search("ddd") != false {
+		t.Errorf("Delete error: Did not delete value: %s\n", "ddd")
+	}
+
+	f = tree.Delete("fff")
+	if f != false {
+		t.Errorf("Delete error: Attempted to delete missing value: %s\n", "fff")
+	}
+}
+
+func TestTreeNodeHeight(t *testing.T) {
+	tree := avl.TreeInit()
+	tree.Insert("mmm")
+	tree.Insert("ddd")
+	tree.Insert("ccc")
+	tree.Insert("bbb")
+	tree.Insert("aaa")
+
+	h := tree.Height()
+	if h != 3 {
+		t.Errorf("Height error: Incorrect root height")
+		t.Errorf("Expected height: %d, got: %d\n", 3, h)
+	}
+
+	root := tree.GetRootNode()
+	left := root.GetLeftChild()
+	h = avl.NodeHeight(left)
+	if h != 2 {
+		t.Errorf("Height error: Incorrect root.left height")
+		t.Errorf("Expected height: %d, got: %d\n", 2, h)
+	}
+
+	leftLeft := left.GetLeftChild()
+	h = avl.NodeHeight(leftLeft)
+	if h != 1 {
+		t.Errorf("Height error: Incorrect root.left.left height")
+		t.Errorf("Expected height: %d, got: %d\n", 1, h)
+	}
+}
+
+func TestMinNode(t *testing.T) {
+	tree := avl.TreeInit()
+	tree.Insert("30")
+	min := avl.GetMinNode(tree.GetRootNode())
+	if min.GetValue() != "30" {
+		t.Errorf("Min node error: expected: %s, got: %s\n", "30", min.GetValue())
+	}
+
+	for i := 0; i < 20; i++ {
+		tree.Insert(strconv.Itoa(i))
+	}
+
+	min = avl.GetMinNode(tree.GetRootNode())
+	if min.GetValue() != "0" {
+		t.Errorf("Min node error: expected: %s, got: %s\n", "0", min.GetValue())
 	}
 }
