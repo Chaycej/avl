@@ -115,6 +115,18 @@ func insert(n *Node, val string) *Node {
 	return n
 }
 
+// Searches for an existing node in the tree with the specified
+// value. If the node does not exist a new node is inserted into
+// the tree and true is returned. If the value is already in the
+// tree, false is returned and no new node is inserted.
+func (t *Tree) Probe(val string) bool {
+	if t.Search(val) == false {
+		t.Insert(val)
+		return true
+	}
+	return false
+}
+
 // Deletes a node with the given query. If the node was found
 // and deleted, true is returned, otherwise, false.
 func (t *Tree) Delete(query string) bool {
@@ -152,7 +164,7 @@ func delete(n *Node, query string) *Node {
 				n = temp
 			}
 		} else {
-			temp := getMinNode(n.right)
+			temp := GetMinNode(n.right)
 			n.value = temp.value
 			n.right = delete(n.right, temp.value)
 		}
@@ -186,6 +198,9 @@ func delete(n *Node, query string) *Node {
 	return n
 }
 
+// Rotates a subtee such that the left child of node n is
+// the new root of the subtree and node n is the right
+// child.
 func rightRotate(n *Node) *Node {
 	l := n.left
 	lr := l.right
@@ -197,6 +212,10 @@ func rightRotate(n *Node) *Node {
 	return l
 }
 
+
+// Rotates a subtree such that the right child of node n is
+// the new root of the subtree and node n is the new left
+// child.
 func leftRotate(n *Node) *Node {
 	r := n.right
 	rl := r.left
@@ -208,7 +227,8 @@ func leftRotate(n *Node) *Node {
 	return r
 }
 
-func getMinNode(n *Node) *Node {
+// Returns the minimum node in the subtree rooted at n.
+func GetMinNode(n *Node) *Node {
 	for n != nil && n.left != nil {
 		n = n.left
 	}

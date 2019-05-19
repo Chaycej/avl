@@ -2,8 +2,10 @@ package avl_test
 
 import (
 	"github.com/avl"
+	"math/rand"
 	"strconv"
 	"testing"
+	"time"
 )
 
 func TestTreeInit(t *testing.T) {
@@ -142,6 +144,23 @@ func TestBigSearch(t *testing.T) {
 	}
 }
 
+func TestProbe(t *testing.T) {
+	tree := avl.TreeInit()
+	for i := 0; i < 100; i++ {
+		tree.Insert(strconv.Itoa(i))
+	}
+
+	f := tree.Probe("100")
+	if f != true {
+		t.Errorf("Probe error: failed to insert a value\n")
+	}
+
+	f = tree.Probe("50")
+	if f != false {
+		t.Errorf("Probe error: inserted an existing value\n")
+	}
+}
+
 // Tests for two valid deletions and one invalid deletion in a tree
 // of 7 nodes.
 func TestDelete(t *testing.T) {
@@ -262,5 +281,17 @@ func TestMinNode(t *testing.T) {
 	min = avl.GetMinNode(tree.GetRootNode())
 	if min.GetValue() != "0" {
 		t.Errorf("Min node error: expected: %s, got: %s\n", "0", min.GetValue())
+	}
+}
+
+// Benchmarks
+
+func BenchmarkInsert100000(b *testing.B) {
+	tree := avl.TreeInit()
+	rand.Seed(time.Now().UnixNano())
+	p := rand.Perm(100000)
+
+	for _, v := range p {
+		tree.Insert(strconv.Itoa(v))
 	}
 }

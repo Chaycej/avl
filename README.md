@@ -31,6 +31,9 @@ Search, Insert, and Delete operations have O(lgn) run-time complexity. This is a
  
 - (t *Tree) Insert(val string)  
  &nbsp;&nbsp;Inserts a newly allocated node with the given val string into the tree.
+
+- (t *Tree) Probe(val string)  
+&nbsp;&nbsp; Searches for an existing node with the given value and inserts it if the value was not found.
  
 - (t *Tree) Delete(query string) bool  
  &nbsp;&nbsp;Deletes a node with the given query string if it exists in the tree. The method returns true if deletion was  &nbsp;&nbsp;successfull, otherwise false.
