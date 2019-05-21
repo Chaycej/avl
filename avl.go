@@ -1,13 +1,17 @@
 package avl
 
 import (
+	"errors"
 	"fmt"
-	"strings"
 )
+
+type Key interface {
+	Compare(other Key) int
+}
 
 type Node struct {
 	height int
-	value  string
+	key    Key
 	left   *Node
 	right  *Node
 }
@@ -47,16 +51,16 @@ func getBalance(n *Node) int {
 
 // Searches for a string in the tree.
 // Returns true if the string exists, otherwise false.
-func (t *Tree) Search(query string) bool {
+func (t *Tree) Search(k Key) bool {
 	if t == nil {
 		return false
 	}
 
 	cur := t.root
 	for cur != nil {
-		if cur.value < query {
+		if cur.key.Compare(k) < 0 {
 			cur = cur.right
-		} else if cur.value > query {
+		} else if cur.key.Compare(k) > 0 {
 			cur = cur.left
 		} else {
 			return true
@@ -65,18 +69,63 @@ func (t *Tree) Search(query string) bool {
 	return false
 }
 
-// Inserts a node with the given value into the tree.
-func (t *Tree) Insert(val string) {
-	t.root = insert(t.root, val)
+func (t *Tree) getNode(k Key) (*Node, *Node) {
+	if t.root == nil {
+		return nil, nil
+	}
+
+	cur := t.root
+	var parent *Node = nil
+	for cur != nil {
+		if cur.key.Compare(k) < 0 {
+			parent = cur
+			cur = cur.right
+		} else if cur.key.Compare(k) > 0 {
+			parent = cur
+			cur = cur.left
+		} else {
+			return cur, parent
+		}
+	}
+
+	return nil, nil
 }
 
-func insert(n *Node, val string) *Node {
+// Returns a slice of nodes that contains nodes from the root of
+// the tree to the node that contains k.
+func (t *Tree) getPathToKey(k Key) []Node {
+	if t.root == nil {
+		return nil
+	}
+
+	var path []Node
+	cur := t.root
+	for cur != nil {
+		path = append(path, *cur)
+		if cur.key.Compare(k) < 0 {
+			cur = cur.right
+		} else if cur.key.Compare(k) > 0 {
+			cur = cur.left
+		} else {
+			break
+		}
+	}
+
+	return path
+}
+
+// Inserts a node with the given value into the tree.
+func (t *Tree) Insert(k Key) {
+	t.root = insert(t.root, k)
+}
+
+func insert(n *Node, k Key) *Node {
 	if n == nil {
-		return &Node{height: 1, value: val}
-	} else if n.value < val {
-		n.right = insert(n.right, val)
+		return &Node{height: 1, key: k}
+	} else if n.key.Compare(k) < 0 {
+		n.right = insert(n.right, k)
 	} else {
-		n.left = insert(n.left, val)
+		n.left = insert(n.left, k)
 	}
 
 	n.height = max(NodeHeight(n.left), NodeHeight(n.right)) + 1
@@ -91,23 +140,23 @@ func insert(n *Node, val string) *Node {
 	// There are four cases for re-balancing a tree
 
 	// left-left -> one left rotation
-	if balance > 1 && val < n.left.value {
+	if balance > 1 && n.left.key.Compare(k) > 0 {
 		return rightRotate(n)
 	}
 
 	// right-right -> one right rotation
-	if balance < -1 && val > n.right.value {
+	if balance < -1 && n.right.key.Compare(k) < 0 {
 		return leftRotate(n)
 	}
 
 	// left-right -> left rotation, right rotation
-	if balance > 1 && val > n.left.value {
+	if balance > 1 && n.left.key.Compare(k) < 0 {
 		n.left = leftRotate(n.left)
 		return rightRotate(n)
 	}
 
 	// right-left -> right rotation, left rotation
-	if balance < -1 && val < n.right.value {
+	if balance < -1 && n.right.key.Compare(k) > 0 {
 		n.right = rightRotate(n.right)
 		return leftRotate(n)
 	}
@@ -119,9 +168,9 @@ func insert(n *Node, val string) *Node {
 // value. If the node does not exist a new node is inserted into
 // the tree and true is returned. If the value is already in the
 // tree, false is returned and no new node is inserted.
-func (t *Tree) Probe(val string) bool {
-	if t.Search(val) == false {
-		t.Insert(val)
+func (t *Tree) Probe(k Key) bool {
+	if t.Search(k) == false {
+		t.Insert(k)
 		return true
 	}
 	return false
@@ -129,22 +178,22 @@ func (t *Tree) Probe(val string) bool {
 
 // Deletes a node with the given query. If the node was found
 // and deleted, true is returned, otherwise, false.
-func (t *Tree) Delete(query string) bool {
-	if t.Search(query) == false {
+func (t *Tree) Delete(k Key) bool {
+	if t.Search(k) == false {
 		return false
 	}
 
-	t.root = delete(t.root, query)
+	t.root = delete(t.root, k)
 	return true
 }
 
-func delete(n *Node, query string) *Node {
+func delete(n *Node, k Key) *Node {
 	if n == nil {
 		return nil
-	} else if n.value < query {
-		n.right = delete(n.right, query)
-	} else if n.value > query {
-		n.left = delete(n.left, query)
+	} else if n.key.Compare(k) < 0 {
+		n.right = delete(n.right, k)
+	} else if n.key.Compare(k) > 0 {
+		n.left = delete(n.left, k)
 	} else {
 
 		// One child or no child
@@ -165,8 +214,8 @@ func delete(n *Node, query string) *Node {
 			}
 		} else {
 			temp := GetMinNode(n.right)
-			n.value = temp.value
-			n.right = delete(n.right, temp.value)
+			n.key = temp.key
+			n.right = delete(n.right, temp.key)
 		}
 	}
 
@@ -212,7 +261,6 @@ func rightRotate(n *Node) *Node {
 	return l
 }
 
-
 // Rotates a subtree such that the right child of node n is
 // the new root of the subtree and node n is the new left
 // child.
@@ -235,6 +283,89 @@ func GetMinNode(n *Node) *Node {
 	return n
 }
 
+// Returns the greatest value less than or equal to the given value,
+// or nil if the value is not in the tree.
+func (t *Tree) Floor(k Key) (Key, error) {
+	n, p := t.getNode(k)
+
+	if n == nil {
+		return nil, errors.New("Value does not exist in the tree")
+	}
+
+	// node has the least value in the tree
+	if n.left == nil && p == nil {
+		return nil, errors.New("Cannot take the floor of the smallest value in the tree")
+	}
+
+	// There may be a parent node that has a smaller value
+	if n.left == nil && n.key.Compare(p.key) < 0 {
+
+		// Traverse node path to find the first parent with a key less than k
+		path := t.getPathToKey(k)
+		index := len(path) - 2
+		for index >= 0 {
+			if path[index].key.Compare(k) <= 0 {
+				return path[index].key, nil
+			}
+			index--
+		}
+
+		// No smaller parent
+		return nil, nil
+	}
+
+	// parent node is the floor
+	if n.left == nil && n.key.Compare(p.key) >= 0 {
+		return p.key, nil
+	}
+
+	cur := n.left
+	for cur.right != nil {
+		cur = cur.right
+	}
+
+	return cur.key, nil
+}
+
+// Returns the least value greater than or equal to the given value,
+// or nil if the value is not in the tree.
+func (t *Tree) Ceiling(k Key) (Key, error) {
+	n, p := t.getNode(k)
+	if n == nil {
+		return nil, errors.New("Value does not exist in the tree")
+	}
+
+	if n.right == nil && p == nil {
+		return nil, errors.New("Cannot take the ceiling of the largest value in the tree")
+	}
+
+	if n.right == nil && n.key.Compare(p.key) <= 0 {
+		return p.key, nil
+	}
+
+	if n.right == nil && n.key.Compare(p.key) > 0 {
+
+        // Traverse the node path from the bottom up to the find the 
+        // first parent that is greater than k
+		path := t.getPathToKey(k)
+		index := len(path) - 2
+		for index >= 0 {
+			if n.key.Compare(path[index].key) <= 0 {
+				return path[index].key, nil
+			}
+			index--
+		}
+		return nil, errors.New("Cannot take the ceiling of the largest value in the tree")
+	}
+
+	cur := n.right
+	for cur.left != nil {
+		cur = cur.left
+	}
+
+	return cur.key, nil
+}
+
 func (t *Tree) GetRootNode() *Node {
 	return t.root
 }
@@ -247,23 +378,24 @@ func (n *Node) GetLeftChild() *Node {
 	return n.left
 }
 
-func (n *Node) GetValue() string {
-	return n.value
+func (n *Node) GetKey() Key {
+	return n.key
 }
 
 func (t *Tree) PrintTree() {
-	_printTree(t.root, 1)
+	var arr []Key
+	_printTree(t.root, arr)
+	for i := 0; i < len(arr); i++ {
+		fmt.Printf("%s ", arr[i])
+	}
+	fmt.Printf("\n")
 }
 
-func _printTree(n *Node, level int) {
+func _printTree(n *Node, arr []Key) {
 	if n != nil {
-		_printTree(n.left, level+4)
-		var ws strings.Builder
-		for i := 0; i < level; i++ {
-			ws.WriteString(" ")
-		}
-		fmt.Printf("%s %s\n", ws.String(), n.value)
-		_printTree(n.right, level+4)
+		_printTree(n.left, arr)
+		arr = append(arr, n.key)
+		_printTree(n.right, arr)
 	}
 }
 

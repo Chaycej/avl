@@ -8,6 +8,19 @@ import (
 	"time"
 )
 
+type myString struct {
+	s string
+}
+
+func (s myString) Compare(other avl.Key) int {
+	if s.s == other.(myString).s {
+		return 0
+	} else if s.s > other.(myString).s {
+		return 1
+	}
+	return -1
+}
+
 func TestTreeInit(t *testing.T) {
 	tree := avl.TreeInit()
 	if tree.GetRootNode() != nil {
@@ -17,55 +30,51 @@ func TestTreeInit(t *testing.T) {
 
 func TestInsert(t *testing.T) {
 	tree := avl.TreeInit()
-	tree.Insert("cat")
-	tree.Insert("apple")
-	tree.Insert("fox")
+	string1 := myString{s: "cat"}
+	string2 := myString{s: "apple"}
+	string3 := myString{s: "fox"}
 
+	tree.Insert(string1)
 	root := tree.GetRootNode()
-	if root.GetValue() != "cat" {
+	if root.GetKey() != string1 {
 		t.Errorf("Insert error at root node\n")
-		t.Errorf("Expected value \"cat\"\n")
-		t.Errorf("Got value %s\n", root.GetValue())
+		t.Errorf("Expected value %v\n", myString{s: "cat"})
+		t.Errorf("Got value %s\n", root.GetKey())
 	}
 
-	left := root.GetLeftChild()
-	if left.GetValue() != "apple" {
-		t.Errorf("Insert error at root.left node\n")
-		t.Errorf("Expected value \"apple\"\n")
-		t.Errorf("Got value %s,\n", left.GetValue())
-	}
+	tree.Insert(string2)
+	tree.Insert(string3)
 
-	right := root.GetRightChild()
-	if right.GetValue() != "fox" {
-		t.Errorf("Insert error at root.right node\n")
-		t.Errorf("Expected value \"fox\"\n")
-		t.Errorf("Got value %s\n", right.GetValue())
+	if root.GetLeftChild() == nil || root.GetRightChild() == nil {
+		t.Errorf("Insert error: left and right child of root should be non-nil\n")
 	}
 }
 
 func TestSearch(t *testing.T) {
 	tree := avl.TreeInit()
+	string1 := myString{s: "apple"}
+	string2 := myString{s: "book"}
+	string3 := myString{s: "cat"}
 
-	found := tree.Search("test")
+	found := tree.Search(myString{s: "random string"})
 	if found != false {
 		t.Errorf("Search error: empty tree\n")
 	}
 
-	tree.Insert("apple")
-	found = tree.Search("apple")
+	tree.Insert(string1)
+	found = tree.Search(string1)
 	if found != true {
 		t.Errorf("Search error: Did not find rooted node\n")
 	}
 
-	tree.Insert("book")
-	found = tree.Search("book")
+	tree.Insert(string2)
+	found = tree.Search(string2)
 	if found != true {
 		t.Errorf("Search error: Did not find rooted node\n")
 	}
 
-	tree.Insert("cat")
-	tree.Insert("mat")
-	found = tree.Search("mat")
+	tree.Insert(string3)
+	found = tree.Search(string3)
 	if found != true {
 		t.Errorf("Search error: Did not find rooted node\n")
 	}
@@ -73,57 +82,63 @@ func TestSearch(t *testing.T) {
 
 func TestLeftRotate(t *testing.T) {
 	tree := avl.TreeInit()
-	tree.Insert("a")
-	tree.Insert("b")
-	tree.Insert("c")
+	string1 := myString{s: "a"}
+	string2 := myString{s: "b"}
+	string3 := myString{s: "c"}
+	tree.Insert(string1)
+	tree.Insert(string2)
+	tree.Insert(string3)
 
 	root := tree.GetRootNode()
-	if root.GetValue() != "b" {
+	if root.GetKey() != string2 {
 		t.Errorf("Left rotate error: Invalid root node\n")
-		t.Errorf("Expected value: \"b\"\n")
-		t.Errorf("Got value: \"%s\"\n", root.GetValue())
+		t.Errorf("Expected node: %v\n", string2)
+		t.Errorf("Got value: %v\n", root.GetKey())
 	}
 
 	left := root.GetLeftChild()
-	if left.GetValue() != "a" {
+	if left.GetKey() != string1 {
 		t.Errorf("Left rotate error: Invalid left child node\n")
-		t.Errorf("Expected value: \"a\"\n")
-		t.Errorf("Got value: \"%s\"\n", root.GetValue())
+		t.Errorf("Expected node: %v\n", string1)
+		t.Errorf("Got node: %v\n", root.GetKey())
 	}
 
 	right := root.GetRightChild()
-	if right.GetValue() != "c" {
+	if right.GetKey() != string3 {
 		t.Errorf("Left rotate error: Invalid right child node\n")
-		t.Errorf("Expected value: \"a\"\n")
-		t.Errorf("Got value: \"%s\"\n", root.GetValue())
+		t.Errorf("Expected value: %v\n", string3)
+		t.Errorf("Got value: %v\n", root.GetKey())
 	}
 }
 
 func TestRightRotate(t *testing.T) {
 	tree := avl.TreeInit()
-	tree.Insert("c")
-	tree.Insert("b")
-	tree.Insert("a")
+	string1 := myString{s: "a"}
+	string2 := myString{s: "b"}
+	string3 := myString{s: "c"}
+	tree.Insert(string3)
+	tree.Insert(string2)
+	tree.Insert(string1)
 
 	root := tree.GetRootNode()
-	if root.GetValue() != "b" {
+	if root.GetKey() != string2 {
 		t.Errorf("Left rotate error: Invalid root node\n")
-		t.Errorf("Expected value: \"b\"\n")
-		t.Errorf("Got value: \"%s\"\n", root.GetValue())
+		t.Errorf("Expected node: %v\n", string2)
+		t.Errorf("Got value: %v\n", root.GetKey())
 	}
 
 	left := root.GetLeftChild()
-	if left.GetValue() != "a" {
+	if left.GetKey() != string1 {
 		t.Errorf("Left rotate error: Invalid left child node\n")
-		t.Errorf("Expected value: \"a\"\n")
-		t.Errorf("Got value: \"%s\"\n", root.GetValue())
+		t.Errorf("Expected node: %v\n", string1)
+		t.Errorf("Got node: %v\n", root.GetKey())
 	}
 
 	right := root.GetRightChild()
-	if right.GetValue() != "c" {
+	if right.GetKey() != string3 {
 		t.Errorf("Left rotate error: Invalid right child node\n")
-		t.Errorf("Expected value: \"a\"\n")
-		t.Errorf("Got value: \"%s\"\n", root.GetValue())
+		t.Errorf("Expected value: %v\n", string3)
+		t.Errorf("Got value: %v\n", root.GetKey())
 	}
 }
 
@@ -132,14 +147,14 @@ func TestRightRotate(t *testing.T) {
 func TestBigSearch(t *testing.T) {
 	tree := avl.TreeInit()
 	for i := 0; i < 100000; i++ {
-		tree.Insert(strconv.Itoa(i))
+		tree.Insert(myString{s: strconv.Itoa(i)})
 	}
 
 	for i := 0; i < 100000; i++ {
-		f := tree.Search(strconv.Itoa(i))
+		f := tree.Search(myString{s: strconv.Itoa(i)})
 		if f == false {
 			t.Errorf("Search error\n")
-			t.Errorf("Could not find value: %s\n", strconv.Itoa(i))
+			t.Errorf("Could not find value: %v\n", myString{s: strconv.Itoa(i)})
 		}
 	}
 }
@@ -147,15 +162,15 @@ func TestBigSearch(t *testing.T) {
 func TestProbe(t *testing.T) {
 	tree := avl.TreeInit()
 	for i := 0; i < 100; i++ {
-		tree.Insert(strconv.Itoa(i))
+		tree.Insert(myString{s: strconv.Itoa(i)})
 	}
 
-	f := tree.Probe("100")
+	f := tree.Probe(myString{s: "100"})
 	if f != true {
 		t.Errorf("Probe error: failed to insert a value\n")
 	}
 
-	f = tree.Probe("50")
+	f = tree.Probe(myString{s: "50"})
 	if f != false {
 		t.Errorf("Probe error: inserted an existing value\n")
 	}
@@ -165,26 +180,35 @@ func TestProbe(t *testing.T) {
 // of 7 nodes.
 func TestDelete(t *testing.T) {
 	tree := avl.TreeInit()
-	tree.Insert("test")
-	tree.Insert("abc")
-	tree.Insert("zzz")
-	f := tree.Delete("test")
-	if f != true && tree.Search("test") != false {
-		t.Errorf("Delete error: Did not delete value: %s\n", "test")
+	string1 := myString{s: "test"}
+	string2 := myString{s: "abc"}
+	string3 := myString{s: "zzz"}
+	tree.Insert(string1)
+	tree.Insert(string2)
+	tree.Insert(string3)
+	f := tree.Delete(string1)
+	if f != true && tree.Search(string1) != false {
+		t.Errorf("Delete error: Did not delete node: %v\n", string1)
 	}
 
-	tree.Insert("ccc")
-	tree.Insert("ddd")
-	tree.Insert("bbb")
-	tree.Insert("mmm")
-	f = tree.Delete("ddd")
-	if f != true && tree.Search("ddd") != false {
+	string4 := myString{s: "ccc"}
+	string5 := myString{s: "ddd"}
+	string6 := myString{s: "bbb"}
+	string7 := myString{s: "mmm"}
+
+	tree.Insert(string4)
+	tree.Insert(string5)
+	tree.Insert(string6)
+	tree.Insert(string7)
+	f = tree.Delete(string5)
+	if f != true && tree.Search(string5) != false {
 		t.Errorf("Delete error: Did not delete value: %s\n", "ddd")
 	}
 
-	f = tree.Delete("fff")
+	f = tree.Delete(myString{s: "fff"})
 	if f != false {
-		t.Errorf("Delete error: Attempted to delete missing value: %s\n", "fff")
+		t.Errorf("Delete error: Attempted to delete non-existant node: %v\n",
+			myString{s: "fff"})
 	}
 }
 
@@ -192,20 +216,21 @@ func TestDelete(t *testing.T) {
 func TestBigDelete(t *testing.T) {
 	tree := avl.TreeInit()
 	for i := 0; i < 100000; i++ {
-		tree.Insert(strconv.Itoa(i))
+		tree.Insert(myString{s: strconv.Itoa(i)})
 	}
 
 	// Delete the entire tree
 	for i := 0; i < 100000; i++ {
-		f := tree.Delete(strconv.Itoa(i))
+		f := tree.Delete(myString{s: strconv.Itoa(i)})
 		if f == false {
-			t.Errorf("Delete error: could not delete value: %s\n", strconv.Itoa(i))
+			t.Errorf("Delete error: could not delete node: %v\n",
+				myString{s: strconv.Itoa(i)})
 		}
 	}
 
 	root := tree.GetRootNode()
 	if root != nil {
-		t.Errorf("Delete error: expected root: nil, got: %s\n", root.GetValue())
+		t.Errorf("Delete error: expected root: nil, got: %v\n", root.GetKey())
 	}
 }
 
@@ -213,11 +238,11 @@ func TestBigDelete(t *testing.T) {
 // Note: There are two right-rotations in the re-balancing.
 func TestTreeNodeHeight(t *testing.T) {
 	tree := avl.TreeInit()
-	tree.Insert("mmm")
-	tree.Insert("ddd")
-	tree.Insert("ccc")
-	tree.Insert("bbb")
-	tree.Insert("aaa")
+	tree.Insert(myString{s: "mmm"})
+	tree.Insert(myString{s: "ddd"})
+	tree.Insert(myString{s: "ccc"})
+	tree.Insert(myString{s: "bbb"})
+	tree.Insert(myString{s: "aaa"})
 
 	h := tree.Height()
 	if h != 3 {
@@ -255,7 +280,7 @@ func TestTreeNodeHeight(t *testing.T) {
 func TestBigHeight(t *testing.T) {
 	tree := avl.TreeInit()
 	for i := 0; i < 100000; i++ {
-		tree.Insert(strconv.Itoa(i))
+		tree.Insert(myString{s: strconv.Itoa(i)})
 	}
 
 	// The maximum height of an avl tree cannot exceed 1.44*log2(n)
@@ -268,30 +293,78 @@ func TestBigHeight(t *testing.T) {
 
 func TestMinNode(t *testing.T) {
 	tree := avl.TreeInit()
-	tree.Insert("30")
+	string1 := myString{s: "30"}
+	tree.Insert(string1)
 	min := avl.GetMinNode(tree.GetRootNode())
-	if min.GetValue() != "30" {
-		t.Errorf("Min node error: expected: %s, got: %s\n", "30", min.GetValue())
+	if min.GetKey() != string1 {
+		t.Errorf("Min node error: expected: %v got: %v\n",
+			string1, min.GetKey())
 	}
 
 	for i := 0; i < 20; i++ {
-		tree.Insert(strconv.Itoa(i))
+		tree.Insert(myString{s: strconv.Itoa(i)})
 	}
 
 	min = avl.GetMinNode(tree.GetRootNode())
-	if min.GetValue() != "0" {
-		t.Errorf("Min node error: expected: %s, got: %s\n", "0", min.GetValue())
+	minString := myString{s: "0"}
+	if min.GetKey() != minString {
+		t.Errorf("Min node error: expected: %v, got: %v\n",
+			myString{s: "0"}, min.GetKey())
+	}
+
+}
+
+func TestFloor(t *testing.T) {
+	tree := avl.TreeInit()
+	for i := 0; i < 100; i++ {
+		tree.Insert(myString{s: strconv.Itoa(i)})
+	}
+
+	val, err := tree.Floor(myString{s: "30"})
+	expectedVal := myString{s: "29"}
+	if val != expectedVal && err != nil {
+		t.Errorf("Floor error\n")
+		t.Errorf("Expected: %v, got: %v\n", expectedVal, val)
+		t.Errorf("Error: %v\n", err)
+	}
+
+	val, err = tree.Floor(myString{s: "0"})
+	if val != nil && err == nil {
+		t.Errorf("Floor error\n")
+		t.Errorf("Expected value: %v, got: %v\n", nil, val)
+		t.Errorf("Error: %v\n", err)
+	}
+}
+
+func TestCeiling(t *testing.T) {
+	tree := avl.TreeInit()
+	for i := 0; i < 100; i++ {
+		tree.Insert(myString{s: strconv.Itoa(i)})
+	}
+
+	val, err := tree.Ceiling(myString{s: "30"})
+	expectedVal := myString{s: "31"}
+	if val != expectedVal && err != nil {
+		t.Errorf("Ceiling error")
+		t.Errorf("Expected value: %v, got: %v\n", expectedVal, val)
+		t.Errorf("Error: %v\n", err)
+	}
+
+	val, err = tree.Ceiling(myString{s: "99"})
+	if val != nil && err == nil {
+		t.Errorf("Ceiling error\n")
+		t.Errorf("Expected value: %v, got %v\n", nil, val)
+		t.Errorf("Error: %v\n", err)
 	}
 }
 
 // Benchmarks
-
 func BenchmarkInsert100000(b *testing.B) {
 	tree := avl.TreeInit()
 	rand.Seed(time.Now().UnixNano())
 	p := rand.Perm(100000)
 
 	for _, v := range p {
-		tree.Insert(strconv.Itoa(v))
+		tree.Insert(myString{s: strconv.Itoa(v)})
 	}
 }
