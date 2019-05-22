@@ -1,8 +1,8 @@
 # avl
 avl is an implementation of avl binary search trees in Go
 
-The current supported types are strings. There may be a change in the future to support interfaces that implement a
-hash() method, but for now the intended use is that non-string types be converted to strings in order to be comparable.
+The underlying interface for types in avl is the Comparable interace. Any type can be used as long as it implements the following methods in the interface  
+&nbsp;&nbsp; Compare(other Comparable) int
 
 Search, Insert, and Delete operations have O(lgn) run-time complexity. This is achieved by recognizing inbalances in subtrees after Insert and Delete operations and re-balancing the subtrees.
 

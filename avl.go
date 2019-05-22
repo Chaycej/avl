@@ -2,12 +2,13 @@ package avl
 
 import (
 	"errors"
-	"fmt"
 )
 
-type Key interface {
-	Compare(other Key) int
+type Comparable interface {
+	Compare(other Comparable) int
 }
+
+type Key Comparable
 
 type Node struct {
 	height int
@@ -345,8 +346,8 @@ func (t *Tree) Ceiling(k Key) (Key, error) {
 
 	if n.right == nil && n.key.Compare(p.key) > 0 {
 
-        // Traverse the node path from the bottom up to the find the 
-        // first parent that is greater than k
+		// Traverse the node path from the bottom up to the find the
+		// first parent that is greater than k
 		path := t.getPathToKey(k)
 		index := len(path) - 2
 		for index >= 0 {
@@ -380,23 +381,6 @@ func (n *Node) GetLeftChild() *Node {
 
 func (n *Node) GetKey() Key {
 	return n.key
-}
-
-func (t *Tree) PrintTree() {
-	var arr []Key
-	_printTree(t.root, arr)
-	for i := 0; i < len(arr); i++ {
-		fmt.Printf("%s ", arr[i])
-	}
-	fmt.Printf("\n")
-}
-
-func _printTree(n *Node, arr []Key) {
-	if n != nil {
-		_printTree(n.left, arr)
-		arr = append(arr, n.key)
-		_printTree(n.right, arr)
-	}
 }
 
 func max(x, y int) int {
