@@ -1,6 +1,7 @@
 package avl_test
 
 import (
+	"fmt"
 	"github.com/avl"
 	"math/rand"
 	"strconv"
@@ -12,13 +13,31 @@ type myString struct {
 	s string
 }
 
-func (s myString) Compare(other avl.Key) int {
-	if s.s == other.(myString).s {
-		return 0
-	} else if s.s > other.(myString).s {
-		return 1
+func (s myString) Compare(other avl.Comparable) int {
+	s1 := len(s.s)
+	s2 := len(other.(myString).s)
+
+	var minL int
+	if s1 < s2 {
+		minL = s1
+	} else {
+		minL = s2
 	}
-	return -1
+
+	for i := 0; i < minL; i++ {
+		c1 := int(rune(s.s[i]))
+		c2 := int(rune(other.(myString).s[i]))
+
+		if c1 != c2 {
+			return c1 - c2
+		}
+	}
+
+	if s1 != s2 {
+		return s1 - s2
+	}
+
+	return 0
 }
 
 func TestTreeInit(t *testing.T) {
@@ -356,6 +375,39 @@ func TestCeiling(t *testing.T) {
 		t.Errorf("Expected value: %v, got %v\n", nil, val)
 		t.Errorf("Error: %v\n", err)
 	}
+}
+
+func buildLst(n *avl.Node, lst []*avl.Node) {
+	if n == nil {
+		return
+	}
+
+	buildLst(n.GetLeftChild(), lst)
+	fmt.Printf("Appending %v\n", n)
+	lst = append(lst, n)
+	buildLst(n.GetRightChild(), lst)
+}
+
+func TestIterator(t *testing.T) {
+	tree := avl.TreeInit()
+	for i := 0; i < 10; i++ {
+		tree.Insert(myString{s: strconv.Itoa(i)})
+	}
+
+	iter := tree.NewIterator()
+
+	var val avl.Key
+	var expectedVal myString
+
+	for i := 0; i < 10; i++ {
+		val = iter.Next()
+		expectedVal = myString{s: strconv.Itoa(i)}
+
+		if val != expectedVal {
+			t.Errorf("Iterator error: expected key: %v, got: %v\n", expectedVal, val)
+		}
+	}
+
 }
 
 // Benchmarks

@@ -17,6 +17,104 @@ type Node struct {
 	right  *Node
 }
 
+type Iterator struct {
+	currentNode *Node
+	stack       *Stack
+}
+
+type StackNode struct {
+	node *Node
+	next *StackNode
+}
+
+type Stack struct {
+	head *StackNode
+}
+
+// Push a new stackNode onto the stack
+func (s *Stack) push(n *Node) {
+	if s.head == nil {
+		s.head = &StackNode{node: n}
+	} else {
+		nnode := StackNode{node: n, next: s.head}
+		s.head = &nnode
+	}
+}
+
+// Pop the head stackNode from the stack
+func (s *Stack) pop() *StackNode {
+	if s.head == nil {
+		return nil
+	}
+
+	ret := s.head
+	s.head = s.head.next
+	return ret
+}
+
+func (s *Stack) isEmpty() bool {
+	return s.head == nil
+}
+
+// Initializes a new iterator.
+// Since there are no parent pointers in the tree currently,
+// a stack is being use to traverse in-order.
+func (t *Tree) NewIterator() *Iterator {
+	if t.root == nil {
+		return nil
+	}
+
+	iter := Iterator{stack: &Stack{}}
+
+	cur := t.root
+	for cur.left != nil {
+		iter.stack.push(cur)
+		cur = cur.left
+	}
+
+	iter.currentNode = cur
+	return &iter
+}
+
+// Returns the next successive key in the tree and updates
+// the iterator. If there are no more keys to be iterated,
+// nil is returned.
+//
+// Note: After an iterator is initialized there should be no
+// write operations on the tree until the iterator is finished.
+// There is undefined behaviour if you iterate an iterator while
+// simultaneously inserting/deleting.
+func (iter *Iterator) Next() Key {
+
+	if iter.currentNode == nil {
+		return nil
+	}
+
+	node := *iter.currentNode
+
+	if iter.currentNode.right != nil {
+		cur := iter.currentNode.right
+		for cur.left != nil {
+			iter.stack.push(cur)
+			cur = cur.left
+		}
+		iter.currentNode = cur
+	} else {
+		if iter.stack.isEmpty() {
+			iter.currentNode = nil
+		} else {
+			iter.currentNode = iter.stack.pop().node
+		}
+	}
+
+	return node.GetKey()
+}
+
+// Returns true if there is a non-nil key in the iterator.
+func (iter *Iterator) HasNext() bool {
+	return iter.currentNode != nil
+}
+
 type Tree struct {
 	root *Node
 }
@@ -140,12 +238,12 @@ func insert(n *Node, k Key) *Node {
 
 	// There are four cases for re-balancing a tree
 
-	// left-left -> one left rotation
+	// left-left -> one right rotation
 	if balance > 1 && n.left.key.Compare(k) > 0 {
 		return rightRotate(n)
 	}
 
-	// right-right -> one right rotation
+	// right-right -> one left rotation
 	if balance < -1 && n.right.key.Compare(k) < 0 {
 		return leftRotate(n)
 	}
