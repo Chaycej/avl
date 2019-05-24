@@ -10,6 +10,10 @@ type Comparable interface {
 
 type Key Comparable
 
+type Tree struct {
+	root *Node
+}
+
 type Node struct {
 	height int
 	key    Key
@@ -113,10 +117,6 @@ func (iter *Iterator) Next() Key {
 // Returns true if there is a non-nil key in the iterator.
 func (iter *Iterator) HasNext() bool {
 	return iter.currentNode != nil
-}
-
-type Tree struct {
-	root *Node
 }
 
 func TreeInit() *Tree {
